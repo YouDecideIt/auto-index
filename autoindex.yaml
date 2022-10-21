@@ -2,6 +2,9 @@
 tidb:
   address: 172.16.4.42:23300
 
+ng-monitor:
+  address: 172.16.4.42:23309
+
 web:
   address: 0.0.0.0:9977
 

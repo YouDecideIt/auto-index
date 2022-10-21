@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/YouDecideIt/auto-index/config"
+	"github.com/YouDecideIt/auto-index/study"
 	"github.com/YouDecideIt/auto-index/utils/printer"
 	stdlog "log"
 	"os"
@@ -143,6 +144,8 @@ func main() {
 
 	db := initDatabase(autoIndexConfig)
 	defer closeDatabase(db)
+
+	study.Study(autoIndexConfig.NgMonitorConfig.Address)
 
 	//storage := store.NewDefaultMetricStorage(db)
 	//defer storage.Close()

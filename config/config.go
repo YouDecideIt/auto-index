@@ -7,6 +7,10 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+type NgMonitorConfig struct {
+	Address string `yaml:"address"`
+}
+
 type TiDBConfig struct {
 	Address string `yaml:"address"`
 }
@@ -34,10 +38,11 @@ type LogConfig struct {
 }
 
 type AutoIndexConfig struct {
-	TiDBConfig    TiDBConfig      `yaml:"tidb"`
-	WebConfig     WebConfig       `yaml:"web"`
-	ScrapeConfigs []*ScrapeConfig `yaml:"scrape_configs"`
-	LogConfig     LogConfig       `yaml:"logs"`
+	TiDBConfig      TiDBConfig      `yaml:"tidb"`
+	NgMonitorConfig NgMonitorConfig `yaml:"ng-monitor"`
+	WebConfig       WebConfig       `yaml:"web"`
+	ScrapeConfigs   []*ScrapeConfig `yaml:"scrape_configs"`
+	LogConfig       LogConfig       `yaml:"logs"`
 }
 
 var DefaultAutoIndexConfig = AutoIndexConfig{
