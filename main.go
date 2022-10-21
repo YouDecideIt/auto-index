@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"database/sql"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/YouDecideIt/auto-index/config"
@@ -72,9 +74,17 @@ func initDatabase(cfg *config.AutoIndexConfig) *sql.DB {
 		log.Info("init database done", zap.Duration("in", time.Since(now)))
 	}()
 
-	db, err := sql.Open("mysql", fmt.Sprintf("root@(%s)/test", cfg.TiDBConfig.Address))
-	if err != nil {
-		log.Fatal("failed to open db", zap.Error(err))
+	db, err := sql.Open("mysql", fmt.Sprintf("root@tcp(%s)/test", cfg.TiDBConfig.Address))
+	{
+		if err != nil {
+			log.Fatal("failed to open db", zap.Error(err))
+		}
+		sqlCtx, cancel := context.WithTimeout(context.Background(), time.Duration(5)*time.Second)
+		defer cancel()
+		err = db.PingContext(sqlCtx)
+		if err != nil {
+			log.Fatal("failed to open db", zap.Error(err))
+		}
 	}
 	db.SetConnMaxLifetime(time.Minute * 3)
 	db.SetMaxOpenConns(10)
@@ -123,6 +133,9 @@ func main() {
 	}
 
 	printer.PrintAutoIndexInfo()
+
+	str, err := json.Marshal(autoIndexConfig)
+	log.Info("config", zap.String("config", string(str)))
 
 	if len(autoIndexConfig.WebConfig.Address) == 0 {
 		log.Fatal("empty listen address", zap.String("listen-address", autoIndexConfig.WebConfig.Address))

@@ -1,5 +1,5 @@
-PACKAGE_LIST  := go list ./...| grep -E "github.com/YouDecideIt/auto-index"
-PACKAGE_LIST_TESTS  := go list ./... | grep -E "github.com/YouDecideIt/auto-index"
+PACKAGE_LIST  := go list ./...| grep -E "github.com/YouDecideIt/auto-index/"
+PACKAGE_LIST_TESTS  := go list ./... | grep -E "github.com/YouDecideIt/auto-index/"
 PACKAGES  ?= $$($(PACKAGE_LIST))
 PACKAGES_TESTS ?= $$($(PACKAGE_LIST_TESTS))
 PACKAGE_DIRECTORIES := $(PACKAGE_LIST) | sed 's|github.com/YouDecideIt/auto-index/||'

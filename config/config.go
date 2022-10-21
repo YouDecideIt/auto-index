@@ -48,7 +48,7 @@ var DefaultAutoIndexConfig = AutoIndexConfig{
 		Address: "127.0.0.1:9977",
 	},
 	LogConfig: LogConfig{
-		LogLevel: "info",
+		LogLevel: "debug",
 	},
 }
 
