@@ -57,13 +57,15 @@ var DefaultAutoIndexConfig = AutoIndexConfig{
 	},
 }
 
-func LoadConfig(cfgFilePath string, override func(config *AutoIndexConfig)) (*AutoIndexConfig, error) {
+var GlobalConfig *AutoIndexConfig
+
+func LoadConfig(cfgFilePath string, override func(config *AutoIndexConfig)) error {
 	cfg := DefaultAutoIndexConfig
 
 	if cfgFilePath != "" {
 		file, err := os.Open(cfgFilePath)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		defer file.Close()
 
@@ -72,10 +74,12 @@ func LoadConfig(cfgFilePath string, override func(config *AutoIndexConfig)) (*Au
 
 		// Start YAML decoding from file
 		if err = d.Decode(&cfg); err != nil {
-			return nil, err
+			return err
 		}
 	}
 
 	override(&cfg)
-	return &cfg, nil
+
+	GlobalConfig = &cfg
+	return nil
 }

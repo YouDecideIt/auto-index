@@ -122,12 +122,12 @@ func waitForSigterm() os.Signal {
 func main() {
 	flag.Parse()
 
-	autoIndexConfig, err := config.LoadConfig(*cfgFilePath, overrideConfig)
+	err := config.LoadConfig(*cfgFilePath, overrideConfig)
 	if err != nil {
 		// logger isn't initialized, need to use stdlog
 		stdlog.Fatalf("failed to load config file, config.file: %s", *cfgFilePath)
 	}
-	err = initLogger(autoIndexConfig)
+	err = initLogger(config.GlobalConfig)
 	if err != nil {
 		// failed to initialize logger, need to use stdlog
 		stdlog.Fatalf("failed to init logger, err: %s", err.Error())
@@ -135,27 +135,27 @@ func main() {
 
 	printer.PrintAutoIndexInfo()
 
-	str, err := json.Marshal(autoIndexConfig)
+	str, err := json.Marshal(config.GlobalConfig)
 	log.Info("config", zap.String("config", string(str)))
 
-	if len(autoIndexConfig.WebConfig.Address) == 0 {
-		log.Fatal("empty listen address", zap.String("listen-address", autoIndexConfig.WebConfig.Address))
+	if len(config.GlobalConfig.WebConfig.Address) == 0 {
+		log.Fatal("empty listen address", zap.String("listen-address", config.GlobalConfig.WebConfig.Address))
 	}
 
-	db := initDatabase(autoIndexConfig)
+	db := initDatabase(config.GlobalConfig)
 	defer closeDatabase(db)
 
-	study.Study(autoIndexConfig.NgMonitorConfig.Address)
+	study.Study()
 
 	//storage := store.NewDefaultMetricStorage(db)
 	//defer storage.Close()
 
-	//service.Init(autoIndexConfig, storage)
+	//service.Init(AutoIndexConfig, storage)
 	//defer service.Stop()
 
-	//scrape.Init(autoIndexConfig, storage)
+	//scrape.Init(AutoIndexConfig, storage)
 	//defer scrape.Stop()
 
-	sig := waitForSigterm()
-	log.Info("received signal", zap.String("sig", sig.String()))
+	//sig := waitForSigterm()
+	//log.Info("received signal", zap.String("sig", sig.String()))
 }

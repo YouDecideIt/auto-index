@@ -1,62 +1,58 @@
 package study
 
 import (
-	"bytes"
-	"encoding/json"
-	"fmt"
-	"github.com/go-resty/resty/v2"
+	"github.com/YouDecideIt/auto-index/request"
 	"github.com/pingcap/log"
 	"github.com/pingcap/tidb-dashboard/pkg/apiserver/topsql"
 	"go.uber.org/zap"
+	"strconv"
+	"time"
 )
 
 // Study get the top-sql information from ng-monitor.
-func Study(address string) {
-	//a := topsql.Service{params: topsql.ServiceParams{NgmProxy: &topsql.NgmProxy{}}, FeatureTopSQL: nil}
+func Study() {
+	now := time.Now()
+	aHourAgo := now.Add(-time.Hour)
+
+	instanceRequest := topsql.GetInstancesRequest{
+		Start: strconv.FormatInt(aHourAgo.Unix(), 10),
+		End:   strconv.FormatInt(now.Unix(), 10),
+	}
+
+	resp, err := request.GetInstancesWithTime(instanceRequest)
+	if err != nil {
+		return
+	}
+	log.Info("get top-sql success", zap.Any("resp", resp))
+
+	//tidbInstance := ""
+	//for _, instance := range resp.Data {
+	//	if instance.InstanceType == "tidb" {
+	//		tidbInstance = instance.Instance
+	//		break
+	//	}
+	//}
 	//
-	//clientCfg := client.Config{Endpoints: []string{address}}
-	//cli, _ := client.New(clientCfg)
-	//ngm, _ := utils.NewNgmProxy(nil, cli)
-	////params := topsql.ServiceParams{NgmProxy: ngm}
-	//service := topsql.Service{FeatureTopSQL: nil}
-	//service.GetSummary(nil)
+	//if tidbInstance == "" {
+	//	log.Info("no tidb instance found")
+	//	return
+	//}
 
-	client := resty.New().SetDebug(true)
-	log.Debug("get summary", zap.String("address", address))
-
-	resp, err := client.R().Get("http://" + address + "/topsql/v1/instances")
-	if err != nil {
-		log.Error("get top-sql failed", zap.Error(err))
-		return
-	}
-
-	respT := topsql.InstanceResponse{}
-	err = json.Unmarshal(resp.Body(), &respT)
-	if err != nil {
-		return
-	}
-	log.Info("get top-sql success", zap.Any("resp", respT))
-
-	//req := topsql.GetInstancesRequest{Start: "1", End: "2"}
-	//client.R().SetQueryParams(JSONMethod(req)).Get("http://" + address + "/topsql/v1/instances")
-
-	//_ = resp
-}
-
-func JSONMethod(content interface{}) map[string]string {
-	var name map[string]string
-	if marshalContent, err := json.Marshal(content); err != nil {
-		fmt.Println(err)
-	} else {
-		d := json.NewDecoder(bytes.NewReader(marshalContent))
-		d.UseNumber() // 设置将float64转为一个number
-		if err := d.Decode(&name); err != nil {
-			fmt.Println(err)
-		} else {
-			for k, v := range name {
-				name[k] = string(v)
-			}
+	for _, instance := range resp.Data {
+		summaryRequest := topsql.GetSummaryRequest{
+			Start: strconv.FormatInt(aHourAgo.Unix(), 10),
+			End:   strconv.FormatInt(now.Unix(), 10),
+			//Instance: tidbInstance,
+			Instance:     instance.Instance,
+			InstanceType: instance.InstanceType,
+			Top:          "5",
+			Window:       "21s",
 		}
+
+		resp, err := request.GetSummary(summaryRequest)
+		if err != nil {
+			return
+		}
+		log.Info("get top-sql success", zap.Any("resp", resp))
 	}
-	return name
 }
