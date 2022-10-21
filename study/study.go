@@ -51,8 +51,21 @@ func Study() {
 
 		resp, err := request.GetSummary(summaryRequest)
 		if err != nil {
+			log.Warn("get summary failed", zap.Error(err))
 			return
 		}
-		log.Info("get top-sql success", zap.Any("resp", resp))
+		log.Info("get summary succeed", zap.String("instance", instance.Instance))
+		for i, summary := range resp.Data {
+			log.Info("summary", zap.Int("top", i+1),
+				zap.Any("sql text", summary.SQLText),
+				zap.Any("CPUTimeMs", summary.CPUTimeMs),
+				zap.Any("ExecCountPerSec", summary.ExecCountPerSec),
+				zap.Any("DurationPerExecMs", summary.DurationPerExecMs),
+				zap.Any("ScanRecordsPerSec", summary.ScanRecordsPerSec),
+				zap.Any("ScanIndexesPerSec", summary.ScanIndexesPerSec),
+			)
+		}
+
+		//log.Info("get top-sql success", zap.Any("resp", resp))
 	}
 }

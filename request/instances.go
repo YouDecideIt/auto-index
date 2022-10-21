@@ -26,7 +26,7 @@ func getInstances(req map[string]string) (topsql.InstanceResponse, error) {
 	url := "http://" + config.GlobalConfig.NgMonitorConfig.Address + "/topsql/v1/instances"
 	log.Debug("get instances", zap.String("url", url))
 
-	client := resty.New().SetDebug(true)
+	client := resty.New().SetDebug(false)
 
 	resp, err := client.R().Get(url)
 	if err != nil {

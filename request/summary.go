@@ -32,6 +32,7 @@ func GetSummary(reqRaw topsql.GetSummaryRequest) (topsql.SummaryResponse, error)
 	if err != nil {
 		return topsql.SummaryResponse{}, nil
 	}
-	log.Info("get top-sql success", zap.Any("resp", respT))
+	log.Info("get top-sql success")
+
 	return respT, nil
 }
