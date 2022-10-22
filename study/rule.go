@@ -20,6 +20,9 @@ func Study(ctx context.Context) (topsql.SummaryItem, error) {
 		if instance.InstanceType != "tidb" {
 			continue
 		}
+		if len(summarys.Data) == 0 {
+			continue
+		}
 		hasTiDB = true
 		if topOne.SQLText == "" || topOne.CPUTimeMs < summarys.Data[0].CPUTimeMs {
 			topOne = summarys.Data[0]

@@ -144,6 +144,7 @@ func Process(ctx context.Context) {
 			zap.Float64("threshold", ctx.Cfg.EvaluateConfig.RatioThreshold))
 	}
 
+	// Start a B instance
 	_ = indexies
 
 	// ApplyIndex(ctx,)

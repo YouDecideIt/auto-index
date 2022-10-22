@@ -26,6 +26,12 @@ func GetSummary(ctx ctx.Context, reqRaw topsql.GetSummaryRequest) (topsql.Summar
 		log.Error("get top-sql failed", zap.Error(err))
 		return topsql.SummaryResponse{}, err
 	}
+	if resp.Error() != nil {
+		log.Error("get top-sql failed", zap.Any("error", resp.Error()))
+	}
+	if resp.StatusCode() != 200 {
+		log.Error("get top-sql failed", zap.Int("status code", resp.StatusCode()))
+	}
 
 	respT := topsql.SummaryResponse{}
 	err = json.Unmarshal(resp.Body(), &respT)
