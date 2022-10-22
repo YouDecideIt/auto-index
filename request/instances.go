@@ -2,7 +2,7 @@ package request
 
 import (
 	"encoding/json"
-	"github.com/YouDecideIt/auto-index/config"
+	ctx "github.com/YouDecideIt/auto-index/context"
 	"github.com/YouDecideIt/auto-index/utils"
 	"github.com/go-resty/resty/v2"
 	"github.com/pingcap/log"
@@ -10,25 +10,25 @@ import (
 	"go.uber.org/zap"
 )
 
-func GetInstances() (topsql.InstanceResponse, error) {
-	return getInstances(nil)
+func GetInstances(ctx ctx.Context) (topsql.InstanceResponse, error) {
+	return getInstances(ctx, nil)
 }
 
-func GetInstancesWithTime(req topsql.GetInstancesRequest) (topsql.InstanceResponse, error) {
-	reqq, err := utils.ObjectToMapStringString(req)
+func GetInstancesWithTime(ctx ctx.Context, reqRaw topsql.GetInstancesRequest) (topsql.InstanceResponse, error) {
+	req, err := utils.ObjectToMapStringString(reqRaw)
 	if err != nil {
 		return topsql.InstanceResponse{}, err
 	}
-	return getInstances(reqq)
+	return getInstances(ctx, req)
 }
 
-func getInstances(req map[string]string) (topsql.InstanceResponse, error) {
-	url := "http://" + config.GlobalConfig.NgMonitorConfig.Address + "/topsql/v1/instances"
+func getInstances(ctx ctx.Context, req map[string]string) (topsql.InstanceResponse, error) {
+	url := "http://" + ctx.Cfg.NgMonitorConfig.Address + "/topsql/v1/instances"
 	log.Debug("get instances", zap.String("url", url))
 
 	client := resty.New().SetDebug(false)
 
-	resp, err := client.R().Get(url)
+	resp, err := client.R().SetQueryParams(req).Get(url)
 	if err != nil {
 		log.Error("get top-sql failed", zap.Error(err))
 		return topsql.InstanceResponse{}, err

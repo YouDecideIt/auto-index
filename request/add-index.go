@@ -27,7 +27,7 @@ func MergeSql(tableName string, colName []string) string {
 	return sql
 }
 
-func ApplyIndex(tableName string, colName []string) error {
-	sql := MergeSql(tableName, colName)
-
-}
+//func ApplyIndex(tableName string, colName []string) error {
+//	sql := MergeSql(tableName, colName)
+//
+//}

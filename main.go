@@ -1,12 +1,13 @@
 package main
 
 import (
-	"context"
+	sysctx "context"
 	"database/sql"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/YouDecideIt/auto-index/config"
+	context "github.com/YouDecideIt/auto-index/context"
 	"github.com/YouDecideIt/auto-index/study"
 	"github.com/YouDecideIt/auto-index/utils/printer"
 	stdlog "log"
@@ -80,7 +81,7 @@ func initDatabase(cfg *config.AutoIndexConfig) *sql.DB {
 		if err != nil {
 			log.Fatal("failed to open db", zap.Error(err))
 		}
-		sqlCtx, cancel := context.WithTimeout(context.Background(), time.Duration(5)*time.Second)
+		sqlCtx, cancel := sysctx.WithTimeout(sysctx.Background(), time.Duration(5)*time.Second)
 		defer cancel()
 		err = db.PingContext(sqlCtx)
 		if err != nil {
@@ -122,12 +123,17 @@ func waitForSigterm() os.Signal {
 func main() {
 	flag.Parse()
 
-	err := config.LoadConfig(*cfgFilePath, overrideConfig)
-	if err != nil {
-		// logger isn't initialized, need to use stdlog
-		stdlog.Fatalf("failed to load config file, config.file: %s", *cfgFilePath)
+	ctx := context.Context{}
+	{
+		loadConfig, err := config.LoadConfig(*cfgFilePath, overrideConfig)
+		if err != nil {
+			// logger isn't initialized, need to use stdlog
+			stdlog.Fatalf("failed to load config file, config.file: %s", *cfgFilePath)
+		}
+		ctx.Cfg = loadConfig
 	}
-	err = initLogger(config.GlobalConfig)
+
+	err := initLogger(ctx.Cfg)
 	if err != nil {
 		// failed to initialize logger, need to use stdlog
 		stdlog.Fatalf("failed to init logger, err: %s", err.Error())
@@ -135,17 +141,20 @@ func main() {
 
 	printer.PrintAutoIndexInfo()
 
-	str, err := json.Marshal(config.GlobalConfig)
+	str, err := json.Marshal(ctx.Cfg)
 	log.Info("config", zap.String("config", string(str)))
 
-	if len(config.GlobalConfig.WebConfig.Address) == 0 {
-		log.Fatal("empty listen address", zap.String("listen-address", config.GlobalConfig.WebConfig.Address))
+	//if len(context.Cfg.WebConfig.Address) == 0 {
+	//	log.Fatal("empty listen address", zap.String("listen-address", context.Cfg.WebConfig.Address))
+	//}
+
+	ctx.DB = initDatabase(ctx.Cfg)
+	defer closeDatabase(ctx.DB)
+
+	_, err = study.Study(ctx)
+	if err != nil {
+		log.Error("failed to study", zap.Error(err))
 	}
-
-	db := initDatabase(config.GlobalConfig)
-	defer closeDatabase(db)
-
-	study.Study()
 
 	//storage := store.NewDefaultMetricStorage(db)
 	//defer storage.Close()

@@ -2,14 +2,15 @@ package study
 
 import (
 	"fmt"
+	"github.com/YouDecideIt/auto-index/context"
 	"github.com/pingcap/log"
 	"github.com/pingcap/tidb-dashboard/pkg/apiserver/topsql"
 	"go.uber.org/zap"
 )
 
 // Study studies the topsql and return the need-optimize sqls
-func Study() (topsql.SummaryItem, error) {
-	info, err := GetCurrentTopSQLInfo()
+func Study(ctx context.Context) (topsql.SummaryItem, error) {
+	info, err := GetCurrentTopSQLInfo(ctx)
 	if err != nil {
 		return topsql.SummaryItem{}, err
 	}
