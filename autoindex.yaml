@@ -11,3 +11,6 @@ web:
 logs:
   log_level: debug
   # log_file: autoindex.log
+
+evaluate:
+  interval: 10s

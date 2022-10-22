@@ -24,17 +24,17 @@ type StaticConfig struct {
 }
 
 type ScrapeConfig struct {
-	JobName        string         `yaml:"job_name"`
-	ScrapeInterval time.Duration  `yaml:"scrape_interval"`
-	ScrapeTimeout  time.Duration  `yaml:"scrape_timeout"`
-	MetricsPath    string         `yaml:"metrics_path"`
-	Scheme         string         `yaml:"scheme"`
-	StaticConfigs  []StaticConfig `yaml:"static_configs"`
+	ScrapeInterval time.Duration `yaml:"scrape_interval"`
+	ScrapeTimeout  time.Duration `yaml:"scrape_timeout"`
 }
 
 type LogConfig struct {
 	LogLevel string `yaml:"log_level"`
 	LogFile  string `yaml:"log_file"`
+}
+
+type EvaluateConfig struct {
+	Interval time.Duration `yaml:"interval"`
 }
 
 type AutoIndexConfig struct {
@@ -43,6 +43,7 @@ type AutoIndexConfig struct {
 	WebConfig       WebConfig       `yaml:"web"`
 	ScrapeConfigs   []*ScrapeConfig `yaml:"scrape_configs"`
 	LogConfig       LogConfig       `yaml:"logs"`
+	EvaluateConfig  EvaluateConfig  `yaml:"evaluate"`
 }
 
 var DefaultAutoIndexConfig = AutoIndexConfig{
@@ -54,6 +55,9 @@ var DefaultAutoIndexConfig = AutoIndexConfig{
 	},
 	LogConfig: LogConfig{
 		LogLevel: "debug",
+	},
+	EvaluateConfig: EvaluateConfig{
+		Interval: 0 * time.Second,
 	},
 }
 

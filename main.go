@@ -120,6 +120,19 @@ func waitForSigterm() os.Signal {
 	}
 }
 
+func Process(ctx context.Context) {
+	now := time.Now()
+	log.Info("processing")
+	defer func() {
+		log.Info("process done", zap.Duration("in", time.Since(now)))
+	}()
+
+	_, err := study.Study(ctx)
+	if err != nil {
+		log.Error("failed to study", zap.Error(err))
+	}
+}
+
 func main() {
 	flag.Parse()
 
@@ -151,11 +164,6 @@ func main() {
 	ctx.DB = initDatabase(ctx.Cfg)
 	defer closeDatabase(ctx.DB)
 
-	_, err = study.Study(ctx)
-	if err != nil {
-		log.Error("failed to study", zap.Error(err))
-	}
-
 	//storage := store.NewDefaultMetricStorage(db)
 	//defer storage.Close()
 
@@ -165,6 +173,14 @@ func main() {
 	//scrape.Init(AutoIndexConfig, storage)
 	//defer scrape.Stop()
 
-	//sig := waitForSigterm()
-	//log.Info("received signal", zap.String("sig", sig.String()))
+	ticker := time.NewTicker(ctx.Cfg.EvaluateConfig.Interval)
+	go func() {
+		Process(ctx)
+		for _ = range ticker.C {
+			Process(ctx)
+		}
+	}()
+
+	sig := waitForSigterm()
+	log.Info("received signal", zap.String("sig", sig.String()))
 }
