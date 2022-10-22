@@ -24,7 +24,7 @@ func GetCurrentTopSQLInfo(ctx ctx.Context) (map[topsql.InstanceItem]topsql.Summa
 	if err != nil {
 		return nil, err
 	}
-	log.Info("get top-sql success", zap.Any("resp", resp))
+	log.Info("get top-sql instance success", zap.Any("resp", resp))
 
 	result := make(map[topsql.InstanceItem]topsql.SummaryResponse)
 
@@ -44,7 +44,9 @@ func GetCurrentTopSQLInfo(ctx ctx.Context) (map[topsql.InstanceItem]topsql.Summa
 			log.Warn("get summary failed", zap.Error(err))
 			return nil, err
 		}
-		log.Info("get summary succeed", zap.String("instance", instance.Instance))
+		log.Info("get summary succeed",
+			zap.String("instance", instance.Instance),
+			zap.Uint("len", uint(len(resp.Data))))
 		for i, summary := range resp.Data {
 			log.Debug("summary", zap.Int("top", i+1),
 				zap.Any("sql text", summary.SQLText),
@@ -58,7 +60,6 @@ func GetCurrentTopSQLInfo(ctx ctx.Context) (map[topsql.InstanceItem]topsql.Summa
 		}
 
 		result[instance] = resp
-		//log.Info("get top-sql success", zap.Any("resp", resp))
 	}
 
 	return result, nil

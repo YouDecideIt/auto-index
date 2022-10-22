@@ -7,7 +7,8 @@ import (
 	"flag"
 	"fmt"
 	"github.com/YouDecideIt/auto-index/config"
-	context "github.com/YouDecideIt/auto-index/context"
+	"github.com/YouDecideIt/auto-index/context"
+	"github.com/YouDecideIt/auto-index/request"
 	"github.com/YouDecideIt/auto-index/study"
 	"github.com/YouDecideIt/auto-index/utils/printer"
 	stdlog "log"
@@ -127,10 +128,26 @@ func Process(ctx context.Context) {
 		log.Info("process done", zap.Duration("in", time.Since(now)))
 	}()
 
-	_, err := study.Study(ctx)
+	sql, err := study.StudySQL(ctx)
 	if err != nil {
 		log.Error("failed to study", zap.Error(err))
 	}
+
+	indexies, ratio, err := request.WhatIf(ctx, sql)
+	if err != nil {
+		return
+	}
+
+	if ratio < ctx.Cfg.EvaluateConfig.RatioThreshold {
+		log.Info("optimization ratio is lower than threshold, skip",
+			zap.Float64("ratio", ratio),
+			zap.Float64("threshold", ctx.Cfg.EvaluateConfig.RatioThreshold))
+	}
+
+	// Start a B instance
+	_ = indexies
+
+	// ApplyIndex(ctx,)
 }
 
 func main() {
