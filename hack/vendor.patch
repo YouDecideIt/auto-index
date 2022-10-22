@@ -1,0 +1,13 @@
+diff --git a/replaced/k8s.io/kube-openapi@v0.0.0-20210421082810-95288971da7e/pkg/common/common.go b/replaced/k8s.io/kube-openapi@v0.0.0-20210421082810-95288971da7e/pkg/common/common.go
+index 682014b..40be347 100644
+--- a/replaced/k8s.io/kube-openapi@v0.0.0-20210421082810-95288971da7e/pkg/common/common.go
++++ b/replaced/k8s.io/kube-openapi@v0.0.0-20210421082810-95288971da7e/pkg/common/common.go
+@@ -21,7 +21,7 @@ import (
+ 	"strings"
+
+ 	"github.com/emicklei/go-restful"
+-	"k8s.io/kube-openapi/pkg/validation/spec"
++	"github.com/go-openapi/spec"
+ )
+
+ const (
