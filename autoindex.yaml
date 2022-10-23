@@ -16,5 +16,7 @@ logs:
 
 evaluate:
   interval: 10s
+  wait_after_apply: 10s
+
   est_ratio_threshold: 0.5
   act_ratio_threshold: 0.5

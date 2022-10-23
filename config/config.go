@@ -37,6 +37,7 @@ type EvaluateConfig struct {
 	Interval          time.Duration `yaml:"interval"`
 	EstRatioThreshold float64       `yaml:"est_ratio_threshold"`
 	ActRatioThreshold float64       `yaml:"act_ratio_threshold"`
+	WaitAfterApply    time.Duration `yaml:"wait_after_apply"`
 }
 
 type AutoIndexConfig struct {
@@ -61,6 +62,7 @@ var DefaultAutoIndexConfig = AutoIndexConfig{
 	EvaluateConfig: EvaluateConfig{
 		Interval:          10 * time.Second,
 		EstRatioThreshold: 0.5,
+		WaitAfterApply:    10 * time.Second,
 	},
 }
 

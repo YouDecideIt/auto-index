@@ -2,7 +2,6 @@ package request
 
 import (
 	"encoding/json"
-	ctx "github.com/YouDecideIt/auto-index/context"
 	"github.com/YouDecideIt/auto-index/utils"
 	"github.com/go-resty/resty/v2"
 	"github.com/pingcap/log"
@@ -10,13 +9,13 @@ import (
 	"go.uber.org/zap"
 )
 
-func GetSummary(ctx ctx.Context, reqRaw topsql.GetSummaryRequest) (topsql.SummaryResponse, error) {
+func GetSummary(endpoint string, reqRaw topsql.GetSummaryRequest) (topsql.SummaryResponse, error) {
 	req, err := utils.ObjectToMapStringString(reqRaw)
 	if err != nil {
 		return topsql.SummaryResponse{}, err
 	}
 
-	url := "http://" + ctx.Cfg.NgMonitorConfig.Address + "/topsql/v1/summary"
+	url := "http://" + endpoint + "/topsql/v1/summary"
 	log.Debug("get summary", zap.String("url", url), zap.Any("req", req))
 
 	client := resty.New().SetDebug(false)

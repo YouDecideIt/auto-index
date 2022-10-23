@@ -1,17 +1,15 @@
 package main
 
 import (
-	sysctx "context"
-	"database/sql"
 	"encoding/json"
 	"flag"
-	"fmt"
 	b_cluster "github.com/YouDecideIt/auto-index/b-cluster"
 	"github.com/YouDecideIt/auto-index/config"
 	"github.com/YouDecideIt/auto-index/context"
 	"github.com/YouDecideIt/auto-index/experiment"
 	"github.com/YouDecideIt/auto-index/request"
 	"github.com/YouDecideIt/auto-index/study"
+	"github.com/YouDecideIt/auto-index/utils"
 	"github.com/YouDecideIt/auto-index/utils/printer"
 	stdlog "log"
 	"os"
@@ -72,44 +70,6 @@ func initLogger(cfg *config.AutoIndexConfig) error {
 	return nil
 }
 
-func initDatabase(cfg *config.AutoIndexConfig) *sql.DB {
-	now := time.Now()
-	log.Info("setting up database")
-	defer func() {
-		log.Info("init database done", zap.Duration("in", time.Since(now)))
-	}()
-
-	db, err := sql.Open("mysql", fmt.Sprintf("root@tcp(%s)/test", cfg.TiDBConfig.Address))
-	{
-		if err != nil {
-			log.Fatal("failed to open db", zap.Error(err))
-		}
-		sqlCtx, cancel := sysctx.WithTimeout(sysctx.Background(), time.Duration(5)*time.Second)
-		defer cancel()
-		err = db.PingContext(sqlCtx)
-		if err != nil {
-			log.Fatal("failed to open db", zap.Error(err))
-		}
-	}
-	db.SetConnMaxLifetime(time.Minute * 3)
-	db.SetMaxOpenConns(10)
-	db.SetMaxIdleConns(10)
-
-	return db
-}
-
-func closeDatabase(db *sql.DB) {
-	now := time.Now()
-	log.Info("closing database")
-	defer func() {
-		log.Info("close database done", zap.Duration("in", time.Since(now)))
-	}()
-
-	if err := db.Close(); err != nil {
-		log.Warn("failed to close database", zap.Error(err))
-	}
-}
-
 func waitForSigterm() os.Signal {
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
@@ -130,16 +90,16 @@ func Process(ctx context.Context) {
 		log.Info("process done", zap.Duration("in", time.Since(now)))
 	}()
 
-	item, err := study.Study(ctx)
+	item, err := study.Study(ctx.Cfg.NgMonitorConfig.Address)
 	if err != nil {
 		log.Error("failed to study", zap.Error(err))
 	}
 
-	indexies, estRatio, err := request.WhatIf(ctx, item.SQLText)
+	indexes, estRatio, err := request.WhatIf(ctx, item.SQLText)
 	if err != nil {
+		log.Error("failed to request what if", zap.Error(err))
 		return
 	}
-
 	if estRatio < ctx.Cfg.EvaluateConfig.EstRatioThreshold {
 		log.Info("optimization estRatio is lower than threshold, skip",
 			zap.Float64("estRatio", estRatio),
@@ -156,11 +116,25 @@ func Process(ctx context.Context) {
 	}
 	defer cluster.DestroyBCluster()
 
-	actRatio, err := experiment.Experiment(ctx, endpoint, item.SQLText, indexies)
-
 	// experiment
+	actRatio, err := experiment.Experiment(ctx, endpoint, item, indexes)
+	if err != nil {
+		log.Error("failed to experiment", zap.Error(err))
+		return
+	}
+	if actRatio < ctx.Cfg.EvaluateConfig.ActRatioThreshold {
+		log.Info("optimization actRatio is lower than threshold, skip",
+			zap.Float64("astRatio", actRatio),
+			zap.Float64("threshold", ctx.Cfg.EvaluateConfig.ActRatioThreshold))
+		return
+	}
 
 	// ApplyIndex(ctx,)
+	err = request.ApplyIndex(ctx.DB, indexes)
+	if err != nil {
+		log.Error("failed to apply index", zap.Error(err))
+		return
+	}
 }
 
 func main() {
@@ -191,11 +165,8 @@ func main() {
 	//	log.Fatal("empty listen address", zap.String("listen-address", context.Cfg.WebConfig.Address))
 	//}
 
-	ctx.DB = initDatabase(ctx.Cfg)
-	defer closeDatabase(ctx.DB)
-
-	//storage := store.NewDefaultMetricStorage(db)
-	//defer storage.Close()
+	ctx.DB = utils.OpenDatabase(ctx.Cfg.TiDBConfig.Address)
+	defer utils.CloseDatabase(ctx.DB)
 
 	//service.Init(AutoIndexConfig, storage)
 	//defer service.Stop()

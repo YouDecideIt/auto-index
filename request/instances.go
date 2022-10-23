@@ -2,7 +2,6 @@ package request
 
 import (
 	"encoding/json"
-	ctx "github.com/YouDecideIt/auto-index/context"
 	"github.com/YouDecideIt/auto-index/utils"
 	"github.com/go-resty/resty/v2"
 	"github.com/pingcap/log"
@@ -10,20 +9,20 @@ import (
 	"go.uber.org/zap"
 )
 
-func GetInstances(ctx ctx.Context) (topsql.InstanceResponse, error) {
-	return getInstances(ctx, nil)
+func GetInstances(endpoint string) (topsql.InstanceResponse, error) {
+	return getInstances(endpoint, nil)
 }
 
-func GetInstancesWithTime(ctx ctx.Context, reqRaw topsql.GetInstancesRequest) (topsql.InstanceResponse, error) {
+func GetInstancesWithTime(endpoint string, reqRaw topsql.GetInstancesRequest) (topsql.InstanceResponse, error) {
 	req, err := utils.ObjectToMapStringString(reqRaw)
 	if err != nil {
 		return topsql.InstanceResponse{}, err
 	}
-	return getInstances(ctx, req)
+	return getInstances(endpoint, req)
 }
 
-func getInstances(ctx ctx.Context, req map[string]string) (topsql.InstanceResponse, error) {
-	url := "http://" + ctx.Cfg.NgMonitorConfig.Address + "/topsql/v1/instances"
+func getInstances(endpoint string, req map[string]string) (topsql.InstanceResponse, error) {
+	url := "http://" + endpoint + "/topsql/v1/instances"
 	log.Debug("get instances", zap.String("url", url))
 
 	client := resty.New().SetDebug(false)

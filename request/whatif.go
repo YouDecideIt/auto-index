@@ -3,7 +3,8 @@ package request
 import (
 	"database/sql"
 	"github.com/YouDecideIt/auto-index/context"
-	"log"
+	"github.com/pingcap/log"
+	"go.uber.org/zap"
 	"strconv"
 	"strings"
 )
@@ -55,6 +56,7 @@ func WhatIf(ctx context.Context, sql string) (index []Index, rate float64, err e
 		return
 	}
 
+	log.Info("what if", zap.Any("sql", sql))
 	rows1, err := ctx.DB.Query(sql)
 	if err != nil {
 		return
@@ -65,7 +67,7 @@ func WhatIf(ctx context.Context, sql string) (index []Index, rate float64, err e
 	}
 	rows1.Close()
 
-	log.Println(data0[0][2], data1[0][2])
+	//log.Info(data0[0][2], data1[0][2])
 
 	estCost0, err := strconv.ParseFloat(data0[0][2], 64)
 	if err != nil {

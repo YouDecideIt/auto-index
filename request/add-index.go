@@ -1,7 +1,7 @@
 package request
 
 import (
-	"github.com/YouDecideIt/auto-index/context"
+	"database/sql"
 	"github.com/pingcap/log"
 	"go.uber.org/zap"
 	"strconv"
@@ -28,14 +28,15 @@ func MergeSql(tableName string, colName []string) string {
 	return sql
 }
 
-func ApplyIndex(ctx context.Context, tableName string, colName []string) error {
-	sql := MergeSql(tableName, colName)
-
-	_, err := ctx.DB.Exec(sql)
-	if err != nil {
-		log.Error("apply index failed", zap.Error(err))
-		return err
+func ApplyIndex(db *sql.DB, indexes []Index) error {
+	for _, index := range indexes {
+		sql := MergeSql(index.TableName, index.Cols)
+		_, err := db.Exec(sql)
+		if err != nil {
+			//log.Error("apply index failed", zap.Error(err))
+			return err
+		}
+		log.Info("apply index succeed", zap.String("sql", sql))
 	}
-	log.Error("apply index succeed", zap.String("sql", sql))
 	return nil
 }

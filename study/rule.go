@@ -9,8 +9,8 @@ import (
 )
 
 // Study studies the topsql and return the need-optimize sqls
-func Study(ctx context.Context) (topsql.SummaryItem, error) {
-	info, err := GetCurrentTopSQLInfo(ctx)
+func Study(ngmEndpoint string) (topsql.SummaryItem, error) {
+	info, err := GetCurrentTopSQLInfo(ngmEndpoint)
 	if err != nil {
 		return topsql.SummaryItem{}, err
 	}
@@ -36,7 +36,7 @@ func Study(ctx context.Context) (topsql.SummaryItem, error) {
 }
 
 func StudySQL(ctx context.Context) (string, error) {
-	item, err := Study(ctx)
+	item, err := Study(ctx.Cfg.NgMonitorConfig.Address)
 	if err != nil {
 		return "", err
 	}

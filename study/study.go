@@ -1,7 +1,6 @@
 package study
 
 import (
-	ctx "github.com/YouDecideIt/auto-index/context"
 	"github.com/YouDecideIt/auto-index/request"
 	"github.com/pingcap/log"
 	"github.com/pingcap/tidb-dashboard/pkg/apiserver/topsql"
@@ -11,7 +10,7 @@ import (
 )
 
 // GetCurrentTopSQLInfo get the top-sql information from ng-monitor.
-func GetCurrentTopSQLInfo(ctx ctx.Context) (map[topsql.InstanceItem]topsql.SummaryResponse, error) {
+func GetCurrentTopSQLInfo(ngmEndpoint string) (map[topsql.InstanceItem]topsql.SummaryResponse, error) {
 	now := time.Now()
 	aHourAgo := now.Add(-time.Hour)
 
@@ -20,7 +19,7 @@ func GetCurrentTopSQLInfo(ctx ctx.Context) (map[topsql.InstanceItem]topsql.Summa
 		End:   strconv.FormatInt(now.Unix(), 10),
 	}
 
-	resp, err := request.GetInstancesWithTime(ctx, instanceRequest)
+	resp, err := request.GetInstancesWithTime(ngmEndpoint, instanceRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +38,7 @@ func GetCurrentTopSQLInfo(ctx ctx.Context) (map[topsql.InstanceItem]topsql.Summa
 			Window:       "21s",
 		}
 
-		resp, err := request.GetSummary(ctx, summaryRequest)
+		resp, err := request.GetSummary(ngmEndpoint, summaryRequest)
 		if err != nil {
 			log.Warn("get summary failed", zap.Error(err))
 			return nil, err
