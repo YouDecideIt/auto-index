@@ -41,6 +41,7 @@ func fetchAllRows(rows *sql.Rows) ([][]string, error) {
 
 func WhatIf(ctx context.Context, sql string) (index []Index, rate float64, err error) {
 	sql = "explain format='verbose' " + sql
+	//log.Info("what if", zap.Any("sql", sql))
 	rows0, err := ctx.DB.Query(sql)
 	if err != nil {
 		return
@@ -51,12 +52,13 @@ func WhatIf(ctx context.Context, sql string) (index []Index, rate float64, err e
 	}
 	rows0.Close()
 
+	//log.Info("what if", zap.Any("sql", sql))
 	_, err = ctx.DB.Exec("set @@try_best_index=1")
 	if err != nil {
 		return
 	}
 
-	log.Info("what if", zap.Any("sql", sql))
+	//log.Info("what if", zap.Any("sql", sql))
 	rows1, err := ctx.DB.Query(sql)
 	if err != nil {
 		return
@@ -67,6 +69,8 @@ func WhatIf(ctx context.Context, sql string) (index []Index, rate float64, err e
 	}
 	rows1.Close()
 
+	log.Debug("what if", zap.Any("original cost", data0[0][2]))
+	log.Debug("what if", zap.Any("with index cost", data1[0][2]))
 	//log.Info(data0[0][2], data1[0][2])
 
 	estCost0, err := strconv.ParseFloat(data0[0][2], 64)

@@ -9,10 +9,11 @@ import (
 	"github.com/pingcap/log"
 	"github.com/pingcap/tidb-dashboard/pkg/apiserver/topsql"
 	"go.uber.org/zap"
+	"strings"
 	"time"
 )
 
-func Experiment(ctx context.Context, endpoint *b_cluster.BClusterEndpoint, item topsql.SummaryItem, indexes []request.Index) (float64, error) {
+func Experiment(ctx context.Context, endpoint *b_cluster.BClusterEndpoint, oldItem topsql.SummaryItem, indexes []request.Index) (float64, error) {
 	bdb := utils.OpenDatabase(endpoint.SQLEndpoint)
 	defer utils.CloseDatabase(bdb)
 
@@ -24,11 +25,36 @@ func Experiment(ctx context.Context, endpoint *b_cluster.BClusterEndpoint, item 
 
 	time.Sleep(ctx.Cfg.EvaluateConfig.WaitAfterApply)
 
-	newItem, err := study.Study(endpoint.NgmEndpoint)
+	infos, err := study.GetCurrentTopSQLInfo(endpoint.NgmEndpoint)
+
+	found := false
+	oldCPUTimeMs := oldItem.CPUTimeMs
+	var newCPUTimeMs uint64
+
+	for instance, summarys := range infos {
+		if instance.InstanceType != "tidb" {
+			continue
+		}
+		for _, item := range summarys.Data {
+			if strings.Contains(item.SQLText, "mysql") {
+				continue
+			}
+			study.Instantiate(&item)
+			if item.SQLText == oldItem.SQLText {
+				found = true
+				newCPUTimeMs = item.CPUTimeMs
+			}
+		}
+	}
+
 	if err != nil {
 		log.Error("bdb: failed to study", zap.Error(err))
 		return 0, err
 	}
 
-	return float64((item.CPUTimeMs - newItem.CPUTimeMs) / item.CPUTimeMs), nil
+	if !found {
+
+	}
+
+	return float64((oldCPUTimeMs - newCPUTimeMs) / oldCPUTimeMs), nil
 }

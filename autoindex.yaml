@@ -1,17 +1,17 @@
 
 tidb:
-#  address: k8s-default-basictid-cbc4795071-1b0babd57751db9b.elb.us-west-2.amazonaws.com:4000
-  address: 172.16.4.42:23300
+  address: k8s-default-basictid-cbc4795071-1b0babd57751db9b.elb.us-west-2.amazonaws.com:4000
+#  address: 172.16.4.42:23300
 
 ng-monitor:
-#  address: k8s-default-basicngm-f4a3b679ea-be805624cc552be2.elb.us-west-2.amazonaws.com:12020
-  address: 172.16.4.42:23309
+  address: k8s-default-basicngm-f4a3b679ea-be805624cc552be2.elb.us-west-2.amazonaws.com:12020
+#  address: 172.16.4.42:23309
 
 web:
   address: 0.0.0.0:9977
 
 logs:
-  log_level: info
+  log_level: debug
   # log_file: autoindex.log
 
 evaluate:

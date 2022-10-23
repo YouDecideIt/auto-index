@@ -90,50 +90,57 @@ func Process(ctx context.Context) {
 		log.Info("process done", zap.Duration("in", time.Since(now)))
 	}()
 
-	item, err := study.Study(ctx.Cfg.NgMonitorConfig.Address)
+	items, err := study.Study(ctx.Cfg.NgMonitorConfig.Address)
 	if err != nil {
 		log.Error("failed to study", zap.Error(err))
-	}
-
-	indexes, estRatio, err := request.WhatIf(ctx, item.SQLText)
-	if err != nil {
-		log.Error("failed to request what if", zap.Error(err))
-		return
-	}
-	if estRatio < ctx.Cfg.EvaluateConfig.EstRatioThreshold {
-		log.Info("optimization estRatio is lower than threshold, skip",
-			zap.Float64("estRatio", estRatio),
-			zap.Float64("threshold", ctx.Cfg.EvaluateConfig.EstRatioThreshold))
 		return
 	}
 
-	// Start a B instance
-	cluster := b_cluster.MockCluster{}
-	cluster.StartBCluster()
-	endpoint, err := cluster.WaitBClusterStartedAndMirrored(ctx)
-	if err != nil {
-		log.Error("failed to wait for B cluster", zap.Error(err))
-	}
-	defer cluster.DestroyBCluster()
+	for i, item := range items {
+		log.Info("study", zap.Int("index", i))
+		if item.SQLText == "" {
+			continue
+		}
+		indexes, estRatio, err := request.WhatIf(ctx, item.SQLText)
+		if err != nil {
+			log.Error("failed to request what if", zap.Error(err))
+			return
+		}
+		if estRatio < ctx.Cfg.EvaluateConfig.EstRatioThreshold {
+			log.Info("optimization estRatio is lower than threshold, skip",
+				zap.Float64("estRatio", estRatio),
+				zap.Float64("threshold", ctx.Cfg.EvaluateConfig.EstRatioThreshold))
+			continue
+		}
 
-	// experiment
-	actRatio, err := experiment.Experiment(ctx, endpoint, item, indexes)
-	if err != nil {
-		log.Error("failed to experiment", zap.Error(err))
-		return
-	}
-	if actRatio < ctx.Cfg.EvaluateConfig.ActRatioThreshold {
-		log.Info("optimization actRatio is lower than threshold, skip",
-			zap.Float64("astRatio", actRatio),
-			zap.Float64("threshold", ctx.Cfg.EvaluateConfig.ActRatioThreshold))
-		return
-	}
+		// Start a B instance
+		cluster := b_cluster.MockCluster{}
+		cluster.StartBCluster()
+		endpoint, err := cluster.WaitBClusterStartedAndMirrored(ctx)
+		if err != nil {
+			log.Error("failed to wait for B cluster", zap.Error(err))
+		}
+		defer cluster.DestroyBCluster()
 
-	// ApplyIndex(ctx,)
-	err = request.ApplyIndex(ctx.DB, indexes)
-	if err != nil {
-		log.Error("failed to apply index", zap.Error(err))
-		return
+		// experiment
+		actRatio, err := experiment.Experiment(ctx, endpoint, item, indexes)
+		if err != nil {
+			log.Error("failed to experiment", zap.Error(err))
+			return
+		}
+		if actRatio < ctx.Cfg.EvaluateConfig.ActRatioThreshold {
+			log.Info("optimization actRatio is lower than threshold, skip",
+				zap.Float64("astRatio", actRatio),
+				zap.Float64("threshold", ctx.Cfg.EvaluateConfig.ActRatioThreshold))
+			continue
+		}
+
+		// ApplyIndex(ctx,)
+		err = request.ApplyIndex(ctx.DB, indexes)
+		if err != nil {
+			log.Error("failed to apply index", zap.Error(err))
+			return
+		}
 	}
 }
 
@@ -174,12 +181,12 @@ func main() {
 	//scrape.Init(AutoIndexConfig, storage)
 	//defer scrape.Stop()
 
-	ticker := time.NewTicker(ctx.Cfg.EvaluateConfig.Interval)
+	//ticker := time.NewTicker(ctx.Cfg.EvaluateConfig.Interval)
 	go func() {
 		Process(ctx)
-		for _ = range ticker.C {
-			Process(ctx)
-		}
+		//for _ = range ticker.C {
+		//	Process(ctx)
+		//}
 	}()
 
 	sig := waitForSigterm()

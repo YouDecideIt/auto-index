@@ -14,12 +14,12 @@ func GetCurrentTopSQLInfo(ngmEndpoint string) (map[topsql.InstanceItem]topsql.Su
 	now := time.Now()
 	aHourAgo := now.Add(-time.Hour)
 
-	instanceRequest := topsql.GetInstancesRequest{
-		Start: strconv.FormatInt(aHourAgo.Unix(), 10),
-		End:   strconv.FormatInt(now.Unix(), 10),
-	}
+	//instanceRequest := topsql.GetInstancesRequest{
+	//	Start: strconv.FormatInt(aHourAgo.Unix(), 10),
+	//	End:   strconv.FormatInt(now.Unix(), 10),
+	//}
 
-	resp, err := request.GetInstancesWithTime(ngmEndpoint, instanceRequest)
+	resp, err := request.GetInstances(ngmEndpoint)
 	if err != nil {
 		return nil, err
 	}

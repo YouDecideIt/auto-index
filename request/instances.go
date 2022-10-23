@@ -27,7 +27,7 @@ func getInstances(endpoint string, req map[string]string) (topsql.InstanceRespon
 
 	client := resty.New().SetDebug(false)
 
-	resp, err := client.R().SetQueryParams(req).Get(url)
+	resp, err := client.SetDebug(true).R().SetQueryParams(req).Get(url)
 	if err != nil {
 		log.Error("get top-sql failed", zap.Error(err))
 		return topsql.InstanceResponse{}, err

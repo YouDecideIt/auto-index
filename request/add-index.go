@@ -31,6 +31,7 @@ func MergeSql(tableName string, colName []string) string {
 func ApplyIndex(db *sql.DB, indexes []Index) error {
 	for _, index := range indexes {
 		sql := MergeSql(index.TableName, index.Cols)
+		log.Warn("appling index!", zap.String("sql", sql))
 		_, err := db.Exec(sql)
 		if err != nil {
 			//log.Error("apply index failed", zap.Error(err))
