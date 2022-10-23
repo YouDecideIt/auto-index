@@ -34,8 +34,9 @@ type LogConfig struct {
 }
 
 type EvaluateConfig struct {
-	Interval       time.Duration `yaml:"interval"`
-	RatioThreshold float64       `yaml:"ratio_threshold"`
+	Interval          time.Duration `yaml:"interval"`
+	EstRatioThreshold float64       `yaml:"est_ratio_threshold"`
+	ActRatioThreshold float64       `yaml:"act_ratio_threshold"`
 }
 
 type AutoIndexConfig struct {
@@ -58,8 +59,8 @@ var DefaultAutoIndexConfig = AutoIndexConfig{
 		LogLevel: "debug",
 	},
 	EvaluateConfig: EvaluateConfig{
-		Interval:       10 * time.Second,
-		RatioThreshold: 0.5,
+		Interval:          10 * time.Second,
+		EstRatioThreshold: 0.5,
 	},
 }
 

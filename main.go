@@ -6,8 +6,10 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	b_cluster "github.com/YouDecideIt/auto-index/b-cluster"
 	"github.com/YouDecideIt/auto-index/config"
 	"github.com/YouDecideIt/auto-index/context"
+	"github.com/YouDecideIt/auto-index/experiment"
 	"github.com/YouDecideIt/auto-index/request"
 	"github.com/YouDecideIt/auto-index/study"
 	"github.com/YouDecideIt/auto-index/utils/printer"
@@ -128,24 +130,35 @@ func Process(ctx context.Context) {
 		log.Info("process done", zap.Duration("in", time.Since(now)))
 	}()
 
-	sql, err := study.StudySQL(ctx)
+	item, err := study.Study(ctx)
 	if err != nil {
 		log.Error("failed to study", zap.Error(err))
 	}
 
-	indexies, ratio, err := request.WhatIf(ctx, sql)
+	indexies, estRatio, err := request.WhatIf(ctx, item.SQLText)
 	if err != nil {
 		return
 	}
 
-	if ratio < ctx.Cfg.EvaluateConfig.RatioThreshold {
-		log.Info("optimization ratio is lower than threshold, skip",
-			zap.Float64("ratio", ratio),
-			zap.Float64("threshold", ctx.Cfg.EvaluateConfig.RatioThreshold))
+	if estRatio < ctx.Cfg.EvaluateConfig.EstRatioThreshold {
+		log.Info("optimization estRatio is lower than threshold, skip",
+			zap.Float64("estRatio", estRatio),
+			zap.Float64("threshold", ctx.Cfg.EvaluateConfig.EstRatioThreshold))
+		return
 	}
 
 	// Start a B instance
-	_ = indexies
+	cluster := b_cluster.MockCluster{}
+	cluster.StartBCluster()
+	endpoint, err := cluster.WaitBClusterStartedAndMirrored(ctx)
+	if err != nil {
+		log.Error("failed to wait for B cluster", zap.Error(err))
+	}
+	defer cluster.DestroyBCluster()
+
+	actRatio, err := experiment.Experiment(ctx, endpoint, item.SQLText, indexies)
+
+	// experiment
 
 	// ApplyIndex(ctx,)
 }
