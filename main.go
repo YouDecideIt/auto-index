@@ -1,6 +1,7 @@
 package main
 
 import (
+	sysctx "context"
 	"encoding/json"
 	"flag"
 	"github.com/YouDecideIt/auto-index/config"
@@ -115,15 +116,15 @@ func Process(ctx context.Context) {
 
 		// Start a B instance
 		cluster := operations.New()
-		err := cluster.StartBCluster()
+		err = cluster.StartBCluster(sysctx.Background())
 		if err != nil {
 			return
 		}
-		endpoint, err := cluster.WaitBClusterStartedAndMirrored(ctx)
+		endpoint, err := cluster.WaitBClusterStartedAndMirrored(sysctx.Background())
 		if err != nil {
 			log.Error("failed to wait for B cluster", zap.Error(err))
 		}
-		defer cluster.DestroyBCluster()
+		defer cluster.DestroyBCluster(sysctx.Background())
 
 		// experiment
 		actRatio, err := experiment.Experiment(ctx, endpoint, item, indexes)

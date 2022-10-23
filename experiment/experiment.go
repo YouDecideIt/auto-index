@@ -1,8 +1,8 @@
 package experiment
 
 import (
-	b_cluster "github.com/YouDecideIt/auto-index/b-cluster"
 	"github.com/YouDecideIt/auto-index/context"
+	"github.com/YouDecideIt/auto-index/operations"
 	"github.com/YouDecideIt/auto-index/request"
 	"github.com/YouDecideIt/auto-index/study"
 	"github.com/YouDecideIt/auto-index/utils"
@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func Experiment(ctx context.Context, endpoint *b_cluster.BClusterEndpoint, oldItem topsql.SummaryItem, indexes []request.Index) (float64, error) {
+func Experiment(ctx context.Context, endpoint *operations.BClusterEndpoint, oldItem topsql.SummaryItem, indexes []request.Index) (float64, error) {
 	bdb := utils.OpenDatabase(endpoint.SQLEndpoint)
 	defer utils.CloseDatabase(bdb)
 

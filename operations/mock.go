@@ -1,4 +1,4 @@
-package b_cluster
+package operations
 
 import "github.com/YouDecideIt/auto-index/context"
 

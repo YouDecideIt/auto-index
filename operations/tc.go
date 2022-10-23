@@ -142,8 +142,8 @@ func (op *tcOp) restoreToBCluster(ctx context.Context) error {
 	return nil
 }
 
-func (op *tcOp) WaitBClusterStartedAndMirrored(ctx context.Context) (*Cluster, error) {
-	c := &Cluster{}
+func (op *tcOp) WaitBClusterStartedAndMirrored(ctx context.Context) (*BClusterEndpoint, error) {
+	c := &BClusterEndpoint{}
 	fmt.Println("wait b cluster ready")
 	tc := &v1alpha1.TidbCluster{
 		ObjectMeta: metav1.ObjectMeta{
@@ -231,7 +231,7 @@ func (op *tcOp) WaitBClusterStartedAndMirrored(ctx context.Context) (*Cluster, e
 	return c, nil
 }
 
-func (op *tcOp) CreateTiDBCluster(ctx context.Context, c *Cluster) (*Cluster, error) {
+func (op *tcOp) CreateTiDBCluster(ctx context.Context, c *BClusterEndpoint) (*BClusterEndpoint, error) {
 	tc := newTC()
 	if err := op.c.Create(ctx, tc); err != nil {
 		return nil, err
