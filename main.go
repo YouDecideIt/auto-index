@@ -3,10 +3,10 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	b_cluster "github.com/YouDecideIt/auto-index/b-cluster"
 	"github.com/YouDecideIt/auto-index/config"
 	"github.com/YouDecideIt/auto-index/context"
 	"github.com/YouDecideIt/auto-index/experiment"
+	"github.com/YouDecideIt/auto-index/operations"
 	"github.com/YouDecideIt/auto-index/request"
 	"github.com/YouDecideIt/auto-index/study"
 	"github.com/YouDecideIt/auto-index/utils"
@@ -114,8 +114,11 @@ func Process(ctx context.Context) {
 		}
 
 		// Start a B instance
-		cluster := b_cluster.MockCluster{}
-		cluster.StartBCluster()
+		cluster := operations.New()
+		err := cluster.StartBCluster()
+		if err != nil {
+			return
+		}
 		endpoint, err := cluster.WaitBClusterStartedAndMirrored(ctx)
 		if err != nil {
 			log.Error("failed to wait for B cluster", zap.Error(err))
