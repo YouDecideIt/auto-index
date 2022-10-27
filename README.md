@@ -2,7 +2,7 @@
 
 AutoIndex is a project for [TiDB Hackathon 2022](https://tidb.net/events/hackathon2022). 
 
-We are aimed to implement a robust automatic index recommendation and TiFlash copy recommendation system. 
+We are aimed to implement a robust automatic index recommendation and TiFlash replica recommendation system. 
 
 See [Our Chinese RFC here](https://gist.github.com/LittleFall/7f0ddfb2dd6d029e06d22760f6eb1de1).
 
